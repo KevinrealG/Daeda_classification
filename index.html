@@ -1,1 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aquavigia App - Monitoreo de Vector</title>
+    
+    <!-- PyScript -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+
+    <style>
+        :root {
+            --primary: #0056b3;
+            --success: #28a745;
+            --success-hover: #218838;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            max-width: 800px;
+            width: 100%;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* Estilo personalizado para el input de archivo */
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .btn-upload {
+            background-color: #e9ecef;
+            color: #495057;
+            border: 1px solid #ced4da;
+        }
+
+        .btn-upload:hover {
+            background-color: #dde2e6;
+        }
+
+        .btn-scan {
+            background-color: var(--success);
+            color: white;
+            flex-grow: 1;
+        }
+
+        .btn-scan:hover {
+            background-color: var(--success-hover);
+        }
+
+        .btn-scan:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .preview-container {
+            width: 100%;
+            min-height: 200px;
+            border: 2px dashed #ced4da;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            overflow: hidden;
+            background-color: #f8f9fa;
+        }
+
+        #image-preview {
+            max-width: 100%;
+            max-height: 400px;
+            display: none;
+            object-fit: contain;
+        }
+
+        .placeholder-text {
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .console {
+            background-color: #1e1e1e;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .console p {
+            margin: 5px 0;
+        }
+        
+        .loader {
+            display: none;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--success);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>Aquavigia App</h1>
+            <p style="margin-top: 5px; color: #666;">Interfaz de Monitoreo Virtual del Vector</p>
+        </div>
+
+        <div class="controls">
+            <label for="file-upload" class="btn btn-upload">
+                📁 1. Cargar Imagen
+            </label>
+            <input type="file" id="file-upload" accept="image/*">
+            
+            <button id="scan-btn" class="btn btn-scan" disabled>
+                <span class="loader" id="scan-loader"></span>
+                🔍 2. Escanear Imagen
+            </button>
+        </div>
+
+        <div class="preview-container" id="preview-box">
+            <span class="placeholder-text" id="placeholder">Ninguna imagen seleccionada</span>
+            <img id="image-preview" alt="Vista previa">
+        </div>
+
+        <div class="console" id="output-console">
+> Sistema iniciado. Esperando carga de imagen...
+        </div>
+    </div>
+
+    <!-- Script de Interfaz de Usuario (JS) -->
+    <script>
+        const fileUpload = document.getElementById('file-upload');
+        const imagePreview = document.getElementById('image-preview');
+        const placeholder = document.getElementById('placeholder');
+        const scanBtn = document.getElementById('scan-btn');
+        const outputConsole = document.getElementById('output-console');
+
+        fileUpload.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    scanBtn.disabled = false;
+                    addLog(`Imagen '${file.name}' cargada correctamente. Lista para escanear.`, '#fff');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function addLog(message, color = "#00ff00") {
+            const p = document.createElement('p');
+            p.style.color = color;
+            p.textContent = `> ${message}`;
+            outputConsole.appendChild(p);
+            outputConsole.scrollTop = outputConsole.scrollHeight;
+        }
+    </script>
+
+    <!-- Configuración y Lógica de PyScript -->
+    <py-config>
+        packages = ["numpy", "scikit-learn"]
+    </py-config>
+
+    <script type="py">
+        from pyscript import document, window
+        import asyncio
+
+        # Aquí se integraría tu código de scikit-learn/modelos entrenados.
+        # Nota: cv2 completo es pesado para Pyodide nativo, usualmente se hace el 
+        # preprocesamiento en el backend o se usan alternativas ligeras de PIL/skimage en el frontend.
+        
+        async def escanear_imagen(event):
+            # Elementos del DOM
+            btn = document.getElementById("scan-btn")
+            loader = document.getElementById("scan-loader")
+            
+            # UI: Estado de carga
+            btn.disabled = True
+            loader.style.display = "inline-block"
+            
+            # Simulación de la consola que pediste
+            window.addLog("Analizando estructuras hídricas y patrones morfológicos...", "#00d2ff")
+            
+            # Simular tiempo de procesamiento de la red neuronal
+            await asyncio.sleep(2)
+            
+            window.addLog("--------------------------------------------------", "#fff")
+            window.addLog("🚨 CLASIFICACIÓN INICIAL: FACTOR DE RIESGO DETECTADO (70.0%) con el modelo de riesgo", "#ff4444")
+            window.addLog("🔬 ALERTA: FOCO DE AEDES AEGYPTI CON LARVAS (85.2%) con el modelo de larva", "#ff4444")
+            window.addLog("El algoritmo detectó cuerpos alargados/segmentados compatibles con larvas activas.", "#fff")
+            window.addLog("--------------------------------------------------", "#fff")
+            
+            # UI: Restaurar estado
+            btn.disabled = False
+            loader.style.display = "none"
+
+        # Conectar el botón de JS con la función de Python
+        document.getElementById("scan-btn").onclick = escanear_imagen
+    </script>
+</body>
+</html>
 
