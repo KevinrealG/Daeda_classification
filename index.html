@@ -224,42 +224,154 @@
             outputConsole.scrollTop = outputConsole.scrollHeight;
         }
     </script>
-
-    <!-- Configuración y Lógica de PyScript -->
     <py-config>
-        packages = ["numpy", "scikit-learn"]
+        packages = ["numpy", "scikit-learn", "joblib", "opencv-python"]
+        
+        [[fetch]]
+        files = ["./model_risk_factor.joblib", "./model_larva.joblib"]
     </py-config>
 
     <script type="py">
         from pyscript import document, window
         import asyncio
+        import joblib
+        import numpy as np
+        import cv2
+        import base64
 
-        # Aquí se integraría tu código de scikit-learn/modelos entrenados.
-        # Nota: cv2 completo es pesado para Pyodide nativo, usualmente se hace el 
-        # preprocesamiento en el backend o se usan alternativas ligeras de PIL/skimage en el frontend.
-        
+        # 1. Cargar los modelos en memoria al iniciar la app
+        try:
+            model_risk_factor = joblib.load('model_risk_factor.joblib')
+            model_larva = joblib.load('model_larva.joblib')
+            window.addLog("Modelos de IA cargados correctamente en memoria.", "#00ff00")
+        except Exception as e:
+            window.addLog(f"Error al cargar modelos: {e}", "#ff4444")
+
+        def extraer_caracteristicas_minuciosas(img):
+            """
+            Aplica el pipeline de visión artificial a la imagen decodificada
+            y devuelve el vector numérico de características.
+            """
+            img_resized = cv2.resize(img, (224, 224))
+            gray = cv2.cvtColor(img_resized, cv2.COLOR_BGR2GRAY)
+
+            # 1. Eliminación Avanzada de Brillos y Reflejos
+            _, mascara_brillo = cv2.threshold(gray, 240, 255, cv2.THRESH_BINARY)
+            img_limpia = cv2.inpaint(img_resized, mascara_brillo, inpaintRadius=3, flags=cv2.INPAINT_TELEA)
+            gray_limpia = cv2.cvtColor(img_limpia, cv2.COLOR_BGR2GRAY)
+
+            # 2. Ecualización Adaptativa (CLAHE)
+            clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
+            gray_mejorada = clahe.apply(gray_limpia)
+
+            # 3. Filtro de Gabor
+            kernel_gabor = cv2.getGaborKernel(ksize=(21, 21), sigma=5.0, theta=np.pi/4, lambd=10.0, gamma=0.5, psi=0, ktype=cv2.CV_32F)
+            imagen_gabor = cv2.filter2D(gray_mejorada, cv2.CV_8UC1, kernel_gabor)
+
+            # 4. Transformación Morfológica Top-Hat
+            kernel_morph = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
+            tophat = cv2.morphologyEx(imagen_gabor, cv2.MORPH_TOPHAT, kernel_morph)
+
+            # 5. Segmentación Otsu
+            _, binaria = cv2.threshold(tophat, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+            # Extracción Métrica
+            contornos, _ = cv2.findContours(binaria, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+            num_objetos = len(contornos)
+            area_total = 0
+            perimetro_promedio = 0
+            relacion_aspecto_max = 0
+
+            for c in contornos:
+                area = cv2.contourArea(c)
+                area_total += area
+                x, y, w, h = cv2.boundingRect(c)
+                aspect_ratio = float(w)/h if h != 0 else 0
+                if aspect_ratio > relacion_aspecto_max:
+                    relacion_aspecto_max = aspect_ratio
+
+            if num_objetos > 0:
+                perimetro_promedio = area_total / num_objetos
+
+            # Histograma HSV
+            hsv = cv2.cvtColor(img_resized, cv2.COLOR_BGR2HSV)
+            hist_hue = cv2.calcHist([hsv], [0], None, [8], [0, 256]).flatten()
+            hist_sat = cv2.calcHist([hsv], [1], None, [8], [0, 256]).flatten()
+
+            caracteristicas = [num_objetos, area_total, perimetro_promedio, relacion_aspecto_max]
+            caracteristicas.extend(hist_hue)
+            caracteristicas.extend(hist_sat)
+
+            return np.array(caracteristicas)
+
         async def escanear_imagen(event):
             # Elementos del DOM
             btn = document.getElementById("scan-btn")
             loader = document.getElementById("scan-loader")
+            img_elemento = document.getElementById("image-preview")
             
             # UI: Estado de carga
             btn.disabled = True
             loader.style.display = "inline-block"
             
-            # Simulación de la consola que pediste
             window.addLog("Analizando estructuras hídricas y patrones morfológicos...", "#00d2ff")
             
-            # Simular tiempo de procesamiento de la red neuronal
-            await asyncio.sleep(2)
+            # Pequeña pausa para que la UI se actualice visualmente
+            await asyncio.sleep(0.1)
             
-            window.addLog("--------------------------------------------------", "#fff")
-            window.addLog("🚨 CLASIFICACIÓN INICIAL: FACTOR DE RIESGO DETECTADO (70.0%) con el modelo de riesgo", "#ff4444")
-            window.addLog("🔬 ALERTA: FOCO DE AEDES AEGYPTI CON LARVAS (85.2%) con el modelo de larva", "#ff4444")
-            window.addLog("El algoritmo detectó cuerpos alargados/segmentados compatibles con larvas activas.", "#fff")
-            window.addLog("--------------------------------------------------", "#fff")
+            try:
+                # 1. Obtener la imagen desde el HTML y decodificarla de Base64
+                base64_str = img_elemento.src.split(',')[1]
+                img_bytes = base64.b64decode(base64_str)
+                nparr = np.frombuffer(img_bytes, np.uint8)
+                img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+                if img is None:
+                    raise ValueError("No se pudo decodificar la imagen.")
+
+                # 2. Extraer características (pipeline OpenCV)
+                vector_feats = extraer_caracteristicas_minuciosas(img)
+                X_nuevo = vector_feats.reshape(1, -1)
+
+                # 3. Predicción - Etapa 1: Factor de Riesgo
+                resultado_riesgo = model_risk_factor.predict(X_nuevo)[0]
+                probabilidades_riesgo = model_risk_factor.predict_proba(X_nuevo)[0]
+                
+                idx_risk_factor_class_1 = np.where(model_risk_factor.classes_ == 1)[0][0] if 1 in model_risk_factor.classes_ else 0
+                porcentaje_riesgo = probabilidades_riesgo[idx_risk_factor_class_1] * 100
+
+                window.addLog("-" * 50, "#fff")
+                
+                if resultado_riesgo == 1:
+                    window.addLog(f"🚨 CLASIFICACIÓN INICIAL: FACTOR DE RIESGO DETECTADO ({porcentaje_riesgo:.1f}%) con el modelo de riesgo", "#ff4444")
+                    
+                    # 4. Predicción - Etapa 2: Presencia de Larvas
+                    resultado_larva = model_larva.predict(X_nuevo)[0]
+                    probabilidades_larva = model_larva.predict_proba(X_nuevo)[0]
+                    
+                    idx_larva_class_1 = np.where(model_larva.classes_ == 1)[0][0] if 1 in model_larva.classes_ else 0
+                    porcentaje_larva = probabilidades_larva[idx_larva_class_1] * 100
+
+                    if resultado_larva == 1:
+                        window.addLog(f"🔬 ALERTA: FOCO DE AEDES AEGYPTI CON LARVAS ({porcentaje_larva:.1f}%) con el modelo de larva", "#ff4444")
+                        window.addLog("El algoritmo detectó cuerpos alargados/segmentados compatibles con larvas activas.", "#fff")
+                    else:
+                        window.addLog(f"✅ FACTOR DE RIESGO SIN LARVAS ACTIVAS ({100 - porcentaje_larva:.1f}%) con el modelo de larva", "#28a745")
+                        window.addLog("Se detectaron factores de riesgo, pero no se encontraron larvas activas.", "#fff")
+                else:
+                    window.addLog(f"✅ ENTORNO SEGURO / SIN FACTOR DE RIESGO ({100 - porcentaje_riesgo:.1f}%) con el modelo de riesgo", "#28a745")
+                    window.addLog("No se evidenciaron factores de riesgo físico inmediatos en la muestra.", "#fff")
+                
+                window.addLog("-" * 50, "#fff")
+
+            except Exception as e:
+                import traceback
+                error_detallado = traceback.format_exc()
+                window.addLog("Error crítico detectado:", "#ff4444")
+                window.addLog(str(error_detallado), "#ff4444")
             
-            # UI: Restaurar estado
+            # UI: Restaurar estado (esto debe estar fuera y alineado con el try)
             btn.disabled = False
             loader.style.display = "none"
 
