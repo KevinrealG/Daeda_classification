@@ -368,6 +368,21 @@
             outputConsole.scrollTop = outputConsole.scrollHeight;
         }
 
+        function speakResult(message) {
+            if (!('speechSynthesis' in window)) {
+                addLog('Tu navegador no soporta síntesis de voz.', '#ff4444');
+                return;
+            }
+
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(message);
+            utterance.lang = 'es-ES';
+            utterance.rate = 1;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            window.speechSynthesis.speak(utterance);
+        }
+
         function persistGeoRecords() {
             localStorage.setItem('aquavigia_geo_records', JSON.stringify(geoState.records));
         }
@@ -693,6 +708,7 @@
                             riskPercent: float(porcentaje_riesgo),
                             larvaPercent: float(porcentaje_larva)
                         })
+                        window.speakResult("Alerta. Se detectó riesgo y presencia de larvas. Se recomienda tomar acción de inmediato.")
                     else:
                         window.addLog(f"✅ FACTOR DE RIESGO SIN LARVAS ACTIVAS ({100 - porcentaje_larva:.1f}%) con el modelo de larva", "#28a745")
                         window.addLog("Se detectaron factores de riesgo, pero no se encontraron larvas activas.", "#fff")
@@ -702,6 +718,7 @@
                             riskPercent: float(porcentaje_riesgo),
                             larvaPercent: float(100 - porcentaje_larva)
                         })
+                        window.speakResult("Riesgo detectado, pero no se observaron larvas activas.")
                 else:
                     window.addLog(f"✅ ENTORNO SEGURO / SIN FACTOR DE RIESGO ({100 - porcentaje_riesgo:.1f}%) con el modelo de riesgo", "#28a745")
                     window.addLog("No se evidenciaron factores de riesgo físico inmediatos en la muestra.", "#fff")
@@ -711,6 +728,7 @@
                         riskPercent: float(100 - porcentaje_riesgo),
                         larvaPercent: 0.0
                     })
+                    window.speakResult("El entorno parece seguro. No se detectó riesgo ni presencia de larvas.")
                 
                 window.addLog("-" * 50, "#fff")
 
