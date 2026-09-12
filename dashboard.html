@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard de Riesgo - Aquavigia</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    :root {
+      --bg: #f4f7f6;
+      --card: #ffffff;
+      --primary: #0056b3;
+      --success: #28a745;
+      --warning: #f0ad4e;
+      --danger: #d9534f;
+      --text: #1f2933;
+      --muted: #52606d;
+      --border: #dfe3e8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .topbar {
+      background: var(--primary);
+      color: white;
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+
+    .nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .nav a {
+      color: white;
+      text-decoration: none;
+      background: rgba(255,255,255,0.12);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 20px 32px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+      padding: 18px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    .stat-card.warning .stat-value { color: var(--warning); }
+    .stat-card.danger .stat-value { color: var(--danger); }
+    .stat-card.success .stat-value { color: var(--success); }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      background: #fafbfd;
+      flex-wrap: wrap;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .panel-body { padding: 18px; }
+
+    #map {
+      height: 440px;
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 720px;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      font-size: 0.92rem;
+    }
+
+    th {
+      background: #f7f9fb;
+      color: var(--muted);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .badge-risk { background: #ffe7e7; color: var(--danger); }
+    .badge-virus { background: #ffefe0; color: #b45a00; }
+    .badge-safe { background: #eafaf1; color: var(--success); }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      appearance: none;
+      border: none;
+      background: var(--primary);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .button.secondary {
+      background: #e9ecef;
+      color: #495057;
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <h1>Dashboard de Riesgo Ambiental</h1>
+    <nav class="nav">
+      <a href="index.html">Vista principal</a>
+      <a href="dashboard.html">Dashboard</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="stats">
+      <div class="stat-card danger">
+        <div class="stat-label">Casos con virus</div>
+        <div class="stat-value" id="virusCount">0</div>
+      </div>
+      <div class="stat-card warning">
+        <div class="stat-label">Con riesgo</div>
+        <div class="stat-value" id="riskCount">0</div>
+      </div>
+      <div class="stat-card success">
+        <div class="stat-label">Sin riesgo</div>
+        <div class="stat-value" id="safeCount">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total registros</div>
+        <div class="stat-value" id="totalCount">0</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Mapa de registros</h2>
+        <div class="actions">
+          <button class="button secondary" id="refreshBtn">Actualizar</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div id="map"></div>
+        <div class="legend">
+          <span class="legend-item"><span class="dot" style="background:#d9534f"></span> Virus detectado</span>
+          <span class="legend-item"><span class="dot" style="background:#f0ad4e"></span> Riesgo</span>
+          <span class="legend-item"><span class="dot" style="background:#28a745"></span> Sin riesgo</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top: 24px;">
+      <div class="panel-header">
+        <h2>Historial de registros</h2>
+      </div>
+      <div class="panel-body table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Latitud</th>
+              <th>Longitud</th>
+              <th>Estado</th>
+              <th>Riesgo</th>
+              <th>Virus</th>
+              <th>Fuente</th>
+            </tr>
+          </thead>
+          <tbody id="recordsTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const STORAGE_KEY = 'aquavigia_geo_records';
+
+    function readRecords() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function getStatus(record) {
+      if (record.virusPresent || record.analysisStatus === 'virus-detectado') {
+        return { label: 'Virus detectado', className: 'badge-virus', color: '#d9534f' };
+      }
+      if (record.riskLevel === 'alto' || record.analysisStatus === 'riesgo-detectado') {
+        return { label: 'Riesgo', className: 'badge-risk', color: '#f0ad4e' };
+      }
+      return { label: 'Sin riesgo', className: 'badge-safe', color: '#28a745' };
+    }
+
+    function renderStats(records) {
+      const virusCount = records.filter(r => r.virusPresent || r.analysisStatus === 'virus-detectado').length;
+      const riskCount = records.filter(r => !r.virusPresent && (r.riskLevel === 'alto' || r.analysisStatus === 'riesgo-detectado')).length;
+      const safeCount = records.filter(r => !r.virusPresent && r.riskLevel !== 'alto' && r.analysisStatus !== 'riesgo-detectado').length;
+
+      document.getElementById('virusCount').textContent = virusCount;
+      document.getElementById('riskCount').textContent = riskCount;
+      document.getElementById('safeCount').textContent = safeCount;
+      document.getElementById('totalCount').textContent = records.length;
+    }
+
+    function renderTable(records) {
+      const tbody = document.getElementById('recordsTableBody');
+      tbody.innerHTML = '';
+
+      records.slice().reverse().forEach((record) => {
+        const status = getStatus(record);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${new Date(record.timestamp).toLocaleString()}</td>
+          <td>${Number(record.lat).toFixed(6)}</td>
+          <td>${Number(record.lng).toFixed(6)}</td>
+          <td><span class="badge ${status.className}">${status.label}</span></td>
+          <td>${Number(record.riskPercent || 0).toFixed(1)}%</td>
+          <td>${Number(record.larvaPercent || 0).toFixed(1)}%</td>
+          <td>${record.source || 'manual'}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function renderMap(records) {
+      const mapContainer = document.getElementById('map');
+      if (!mapContainer._leaflet_id) {
+        const map = L.map('map').setView([10.3997, -75.5144], 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        mapContainer.mapInstance = map;
+      }
+
+      const map = mapContainer.mapInstance;
+      map.eachLayer((layer) => {
+        if (layer instanceof L.Marker) {
+          map.removeLayer(layer);
+        }
+      });
+
+      records.forEach((record) => {
+        const status = getStatus(record);
+        const marker = L.circleMarker([Number(record.lat), Number(record.lng)], {
+          radius: 8,
+          color: status.color,
+          fillColor: status.color,
+          fillOpacity: 0.9,
+          weight: 2
+        }).addTo(map);
+
+        marker.bindPopup(`
+          <strong>${status.label}</strong><br>
+          Lat: ${Number(record.lat).toFixed(6)}<br>
+          Lng: ${Number(record.lng).toFixed(6)}<br>
+          Fecha: ${new Date(record.timestamp).toLocaleString()}<br>
+          Riesgo: ${Number(record.riskPercent || 0).toFixed(1)}%<br>
+          Virus: ${Number(record.larvaPercent || 0).toFixed(1)}%
+        `);
+      });
+
+      if (records.length > 0) {
+        const bounds = L.latLngBounds(records.map(r => [Number(r.lat), Number(r.lng)]));
+        map.fitBounds(bounds.pad(0.35));
+      }
+    }
+
+    function loadDashboard() {
+      const records = readRecords();
+      renderStats(records);
+      renderTable(records);
+      renderMap(records);
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', loadDashboard);
+    document.addEventListener('DOMContentLoaded', loadDashboard);
+  </script>
+</body>
+</html>

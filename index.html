@@ -10,6 +10,7 @@
     <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="./app-storage.js"></script>
 
     <style>
         :root {
@@ -47,6 +48,25 @@
             border-bottom: 2px solid #eee;
             padding-bottom: 15px;
             margin-bottom: 25px;
+        }
+
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            background: #eef4ff;
+            color: var(--primary);
+            border: 1px solid #d0dfff;
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-size: 0.9rem;
+            font-weight: 600;
         }
 
         .header h1 {
@@ -259,6 +279,10 @@
         <div class="header">
             <h1>Aquavigia App</h1>
             <p style="margin-top: 5px; color: #666;">Interfaz de Monitoreo Virtual del Vector</p>
+            <div class="nav-links">
+                <a href="index.html">Vista principal</a>
+                <a href="dashboard.html">Dashboard</a>
+            </div>
         </div>
 
         <div class="controls">
@@ -405,13 +429,42 @@
                 lat: geoState.lat,
                 lng: geoState.lng,
                 source: geoState.source || 'manual',
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                riskLevel: 'sin-datos',
+                virusPresent: false,
+                analysisStatus: 'coordenada-manual'
             };
 
             geoState.records.push(record);
             persistGeoRecords();
+            window.AquavigiaStorage.addRecord(record);
             addLog(`Coordenada registrada: ${record.lat.toFixed(6)}, ${record.lng.toFixed(6)} (${record.source})`, '#28a745');
         }
+
+        window.registerAnalysisRecord = function({ riskDetected, larvaDetected, riskPercent, larvaPercent } = {}) {
+            if (geoState.lat === null || geoState.lng === null) {
+                return;
+            }
+
+            const record = {
+                id: Date.now(),
+                lat: geoState.lat,
+                lng: geoState.lng,
+                source: geoState.source || 'analisis',
+                timestamp: new Date().toISOString(),
+                riskLevel: riskDetected ? 'alto' : 'bajo',
+                virusPresent: Boolean(larvaDetected),
+                riskPercent: Number(riskPercent || 0),
+                larvaPercent: Number(larvaPercent || 0),
+                analysisStatus: larvaDetected ? 'virus-detectado' : (riskDetected ? 'riesgo-detectado' : 'sin-riesgo'),
+                imageName: document.getElementById('file-upload').files[0]?.name || 'sin-imagen'
+            };
+
+            const saved = window.AquavigiaStorage.addRecord(record);
+            if (saved) {
+                addLog(`Registro de análisis guardado en mapa: ${record.analysisStatus} (${record.lat.toFixed(6)}, ${record.lng.toFixed(6)})`, '#28a745');
+            }
+        };
 
         async function saveGeoRecordsToFile() {
             if (geoState.records.length === 0) {
@@ -634,12 +687,30 @@
                     if resultado_larva == 1:
                         window.addLog(f"🔬 ALERTA: FOCO DE AEDES AEGYPTI CON LARVAS ({porcentaje_larva:.1f}%) con el modelo de larva", "#ff4444")
                         window.addLog("El algoritmo detectó cuerpos alargados/segmentados compatibles con larvas activas.", "#fff")
+                        window.registerAnalysisRecord({
+                            riskDetected: True,
+                            larvaDetected: True,
+                            riskPercent: float(porcentaje_riesgo),
+                            larvaPercent: float(porcentaje_larva)
+                        })
                     else:
                         window.addLog(f"✅ FACTOR DE RIESGO SIN LARVAS ACTIVAS ({100 - porcentaje_larva:.1f}%) con el modelo de larva", "#28a745")
                         window.addLog("Se detectaron factores de riesgo, pero no se encontraron larvas activas.", "#fff")
+                        window.registerAnalysisRecord({
+                            riskDetected: True,
+                            larvaDetected: False,
+                            riskPercent: float(porcentaje_riesgo),
+                            larvaPercent: float(100 - porcentaje_larva)
+                        })
                 else:
                     window.addLog(f"✅ ENTORNO SEGURO / SIN FACTOR DE RIESGO ({100 - porcentaje_riesgo:.1f}%) con el modelo de riesgo", "#28a745")
                     window.addLog("No se evidenciaron factores de riesgo físico inmediatos en la muestra.", "#fff")
+                    window.registerAnalysisRecord({
+                        riskDetected: False,
+                        larvaDetected: False,
+                        riskPercent: float(100 - porcentaje_riesgo),
+                        larvaPercent: 0.0
+                    })
                 
                 window.addLog("-" * 50, "#fff")
 
