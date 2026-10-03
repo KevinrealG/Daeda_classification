@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Probar Modelo CNN</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        img { max-width: 200px; margin-top: 20px; border-radius: 8px; }
+        button { padding: 10px 20px; margin-top: 20px; cursor: pointer; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <h2>Prueba tu Modelo (Factor de Riesgo)</h2>
+    
+    <input type="file" id="imageUpload" accept="image/*">
+    <br>
+    <img id="preview" src="" style="display: none;">
+    <br>
+    <button id="predictBtn" style="display: none;">Predecir</button>
+    <h3 id="result"></h3>
+
+    <script>
+        let model;
+        
+        // Cargar el modelo convertido a TensorFlow.js
+        async function loadModel() {
+            try {
+                // Asegúrate de que los archivos del modelo estén en la carpeta 'tfjs_model'
+                model = await tf.loadLayersModel('./tfjs_model/model.json');
+                console.log('Modelo cargado correctamente');
+            } catch (error) {
+                document.getElementById('result').innerText = "Error: No se encontró model.json. Convierte el .h5 primero.";
+            }
+        }
+        loadModel();
+
+        const imageUpload = document.getElementById('imageUpload');
+        const preview = document.getElementById('preview');
+        const predictBtn = document.getElementById('predictBtn');
+        const result = document.getElementById('result');
+
+        imageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                preview.src = URL.createObjectURL(file);
+                preview.style.display = 'inline-block';
+                predictBtn.style.display = 'inline-block';
+                result.innerText = '';
+            }
+        });
+
+        predictBtn.addEventListener('click', async () => {
+            if (!model) return;
+            result.innerText = 'Prediciendo...';
+
+            // Preprocesamiento idéntico al de Python
+            const tensor = tf.browser.fromPixels(preview)
+                .resizeBilinear([64, 64]) // IMAGE_SIZE = (64, 64)
+                .toFloat()
+                .div(tf.scalar(255.0))    // Normalización
+                .expandDims();            // Añadir batch dimension
+
+            // Predicción
+            const prediction = await model.predict(tensor).data();
+            const probRiesgo = prediction[1]; 
+            
+            if (probRiesgo > 0.5) {
+                result.innerText = `Resultado: Factor de Riesgo (${(probRiesgo * 100).toFixed(2)}%)`;
+                result.style.color = "red";
+            } else {
+                result.innerText = `Resultado: Sin Factor de Riesgo (${(prediction[0] * 100).toFixed(2)}%)`;
+                result.style.color = "green";
+            }
+        });
+    </script>
+</body>
+</html>
