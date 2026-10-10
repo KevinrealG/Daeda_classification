@@ -1,79 +1,166 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Probar Modelo CNN</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-        img { max-width: 200px; margin-top: 20px; border-radius: 8px; }
-        button { padding: 10px 20px; margin-top: 20px; cursor: pointer; font-size: 16px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clasificador de factor de riesgo</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0"></script>
+  <style>
+    :root {
+      --bg: #f6f8f7;
+      --card: #ffffff;
+      --text: #1d2a26;
+      --muted: #5f6f69;
+      --accent: #1f6f5c;
+      --border: #d8e0dc;
+      --ok: #1f6f5c;
+      --alerta: #b3401f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 2rem 1rem;
+      line-height: 1.5;
+    }
+    main {
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+    .sub { color: var(--muted); margin: 0 0 1.25rem; font-size: .95rem; }
+    input[type=file] { width: 100%; }
+    input[type=file]:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    #preview {
+      display: none;
+      max-width: 100%;
+      margin-top: 1rem;
+      border-radius: 8px;
+    }
+    #resultado {
+      margin-top: 1rem;
+      padding: .75rem 1rem;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      font-size: 1.05rem;
+    }
+    #resultado.ok { border-color: var(--ok); }
+    #resultado.alerta { border-color: var(--alerta); }
+    .barras { margin-top: .75rem; font-size: .9rem; color: var(--muted); }
+    .fila { display: flex; align-items: center; gap: .5rem; margin-top: .35rem; }
+    .fila span:first-child { width: 150px; }
+    .barra { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .barra div { height: 100%; background: var(--accent); width: 0; }
+    .aviso { margin-top: 1.25rem; font-size: .85rem; color: var(--muted); }
+  </style>
 </head>
 <body>
-    <h2>Prueba tu Modelo (Factor de Riesgo)</h2>
-    
-    <input type="file" id="imageUpload" accept="image/*">
-    <br>
-    <img id="preview" src="" style="display: none;">
-    <br>
-    <button id="predictBtn" style="display: none;">Predecir</button>
-    <h3 id="result"></h3>
+  <main>
+    <h1>Clasificador de factor de riesgo</h1>
+    <p class="sub">Sube una foto y el modelo estimará si presenta un factor de riesgo.</p>
 
-    <script>
-        let model;
-        
-        // Cargar el modelo convertido a TensorFlow.js
-        async function loadModel() {
-            try {
-                // Asegúrate de que los archivos del modelo estén en la carpeta 'tfjs_model'
-                model = await tf.loadLayersModel('./tfjs_model/model.json');
-                console.log('Modelo cargado correctamente');
-            } catch (error) {
-                document.getElementById('result').innerText = "Error: No se encontró model.json. Convierte el .h5 primero.";
-            }
-        }
-        loadModel();
+    <input type="file" id="archivo" accept="image/*" aria-label="Seleccionar imagen">
+    <img id="preview" alt="Vista previa de la imagen seleccionada">
+    <div id="resultado" role="status">Cargando modelo...</div>
 
-        const imageUpload = document.getElementById('imageUpload');
-        const preview = document.getElementById('preview');
-        const predictBtn = document.getElementById('predictBtn');
-        const result = document.getElementById('result');
+    <p class="aviso">
+      Herramienta informativa y experimental. No sustituye una inspección ni un diagnóstico profesional.
+    </p>
+  </main>
 
-        imageUpload.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                preview.src = URL.createObjectURL(file);
-                preview.style.display = 'inline-block';
-                predictBtn.style.display = 'inline-block';
-                result.innerText = '';
-            }
-        });
+  <script>
+    const CLASES = ["Sin factor de riesgo", "Factor de riesgo"]; // índice 0 y 1
+    const TAM = 64;
+    let model = null;
 
-        predictBtn.addEventListener('click', async () => {
-            if (!model) return;
-            result.innerText = 'Prediciendo...';
+    // Misma arquitectura que el modelo entrenado en Keras
+    function construirModelo() {
+      const m = tf.sequential();
+      m.add(tf.layers.conv2d({ inputShape: [TAM, TAM, 3], filters: 32, kernelSize: 3, activation: "relu" }));
+      m.add(tf.layers.maxPooling2d({ poolSize: 2 }));
+      m.add(tf.layers.conv2d({ filters: 64, kernelSize: 3, activation: "relu" }));
+      m.add(tf.layers.maxPooling2d({ poolSize: 2 }));
+      m.add(tf.layers.conv2d({ filters: 128, kernelSize: 3, activation: "relu" }));
+      m.add(tf.layers.maxPooling2d({ poolSize: 2 }));
+      m.add(tf.layers.flatten());
+      m.add(tf.layers.dense({ units: 128, activation: "relu" }));
+      m.add(tf.layers.dense({ units: 2, activation: "softmax" }));
+      return m;
+    }
 
-            // Preprocesamiento idéntico al de Python
-            const tensor = tf.browser.fromPixels(preview)
-                .resizeBilinear([64, 64]) // IMAGE_SIZE = (64, 64)
-                .toFloat()
-                .div(tf.scalar(255.0))    // Normalización
-                .expandDims();            // Añadir batch dimension
+    function b64ToFloat32(b64) {
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return new Float32Array(bytes.buffer);
+    }
 
-            // Predicción
-            const prediction = await model.predict(tensor).data();
-            const probRiesgo = prediction[1]; 
-            
-            if (probRiesgo > 0.5) {
-                result.innerText = `Resultado: Factor de Riesgo (${(probRiesgo * 100).toFixed(2)}%)`;
-                result.style.color = "red";
-            } else {
-                result.innerText = `Resultado: Sin Factor de Riesgo (${(prediction[0] * 100).toFixed(2)}%)`;
-                result.style.color = "green";
-            }
-        });
-    </script>
+    const resultado = document.getElementById("resultado");
+
+    (async () => {
+      try {
+        model = construirModelo();
+        const resp = await fetch("pesos.json");
+        if (!resp.ok) throw new Error("No se encontró pesos.json");
+        const pesos = await resp.json();
+        const tensores = pesos.map(w => tf.tensor(b64ToFloat32(w.data), w.shape));
+        model.setWeights(tensores);
+        tensores.forEach(t => t.dispose());
+        resultado.textContent = "Modelo listo. Sube una imagen.";
+      } catch (err) {
+        console.error(err);
+        resultado.textContent = "No se pudo cargar el modelo: " + err.message;
+      }
+    })();
+
+    document.getElementById("archivo").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const img = document.getElementById("preview");
+      img.onload = predecir;
+      img.onerror = () => {
+        resultado.className = "";
+        resultado.textContent = "No se pudo leer la imagen. Prueba con JPG o PNG.";
+      };
+      img.src = URL.createObjectURL(file);
+      img.style.display = "block";
+    });
+
+    async function predecir() {
+      if (!model) return;
+      const img = document.getElementById("preview");
+
+      const salida = tf.tidy(() => {
+        let x = tf.browser.fromPixels(img)             // RGB
+          .resizeBilinear([TAM, TAM], false, true)
+          .toFloat()
+          .div(255);
+        x = tf.reverse(x, -1);                         // RGB -> BGR, igual que cv2.imread
+        return model.predict(x.expandDims(0));
+      });
+
+      const p = await salida.data();
+      salida.dispose();
+
+      const i = p[1] > p[0] ? 1 : 0;
+      resultado.className = i === 1 ? "alerta" : "ok";
+      resultado.innerHTML = `<b>${CLASES[i]}</b> (${(p[i] * 100).toFixed(1)}%)
+        <div class="barras">
+          ${CLASES.map((c, k) => `
+            <div class="fila">
+              <span>${c}</span>
+              <div class="barra"><div style="width:${(p[k] * 100).toFixed(1)}%"></div></div>
+              <span>${(p[k] * 100).toFixed(1)}%</span>
+            </div>`).join("")}
+        </div>`;
+    }
+  </script>
 </body>
 </html>
