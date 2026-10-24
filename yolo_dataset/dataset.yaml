@@ -1,0 +1,9 @@
+# AquaVigía Colombia v3.0 — Configuración YOLOv8 (Detección de Larvas y Focos de Riesgo)
+path: ./yolo_dataset
+train: images/train
+val: images/val
+
+nc: 2
+names:
+  0: larva_aedes
+  1: foco_riesgo_agua
