@@ -58,22 +58,20 @@
         <button id="tabAuthRegister" type="button" class="py-1.5 rounded-md text-slate-600 hover:text-slate-900">
           Crear Cuenta Nueva
         </button>
+        <button id="tabAuthPassword" type="button" class="hidden py-1.5 rounded-md text-slate-600 hover:text-slate-900">
+          Cambiar Contraseña
+        </button>
       </div>
 
       <!-- Login Form -->
       <div id="formLoginBox" class="space-y-3 text-xs">
         <div>
           <label for="loginEmail" class="block font-medium text-slate-700 mb-1">Correo electrónico</label>
-          <input id="loginEmail" type="email" value="maria@comunidad.co" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-700" />
+          <input id="loginEmail" type="email" autocomplete="username" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-700" />
         </div>
         <div>
           <label for="loginPassword" class="block font-medium text-slate-700 mb-1">Contraseña</label>
-          <input id="loginPassword" type="password" value="user123" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-700" />
-        </div>
-        <div class="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-[11px] text-slate-600 space-y-1">
-          <div class="font-semibold text-slate-800">Cuentas precargadas en Base de Datos:</div>
-          <div>• <strong>Usuario (Solo Pestaña 1):</strong> <code class="font-mono-num">maria@comunidad.co</code> / <code class="font-mono-num">user123</code></div>
-          <div>• <strong>Admin (Acceso Total):</strong> <code class="font-mono-num">admin@aquavigia.co</code> / <code class="font-mono-num">admin123</code></div>
+          <input id="loginPassword" type="password" autocomplete="current-password" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-700" />
         </div>
         <button id="btnSubmitLogin" type="button" class="w-full py-2.5 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold transition">
           Entrar al Sistema
@@ -90,18 +88,9 @@
           <label for="regEmail" class="block font-medium text-slate-700 mb-1">Correo electrónico</label>
           <input id="regEmail" type="email" placeholder="andres@correo.co" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-700" />
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label for="regPassword" class="block font-medium text-slate-700 mb-1">Contraseña</label>
-            <input id="regPassword" type="password" placeholder="Mín. 4 caracteres" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-700" />
-          </div>
-          <div>
-            <label for="regRole" class="block font-medium text-slate-700 mb-1">Tipo de Cuenta (RBAC)</label>
-            <select id="regRole" class="w-full border border-slate-300 rounded-lg px-2.5 py-2 text-slate-900 bg-white">
-              <option value="user">Usuario (Solo Pestaña 1)</option>
-              <option value="admin">Administrador (Salud Pública)</option>
-            </select>
-          </div>
+        <div>
+          <label for="regPassword" class="block font-medium text-slate-700 mb-1">Contraseña</label>
+          <input id="regPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128" placeholder="Mínimo 12 caracteres" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-700" />
         </div>
         <div>
           <label for="regMunicipio" class="block font-medium text-slate-700 mb-1">Municipio base</label>
@@ -109,6 +98,19 @@
         </div>
         <button id="btnSubmitRegister" type="button" class="w-full py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold transition">
           Registrar Usuario en Base de Datos
+        </button>
+      </div>
+      <div id="formChangePasswordBox" class="hidden space-y-3 text-xs">
+        <div>
+          <label for="currentPassword" class="block font-medium text-slate-700 mb-1">Contraseña actual</label>
+          <input id="currentPassword" type="password" autocomplete="current-password" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-700" />
+        </div>
+        <div>
+          <label for="newPassword" class="block font-medium text-slate-700 mb-1">Nueva contraseña</label>
+          <input id="newPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128" placeholder="Mínimo 12 caracteres" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-700" />
+        </div>
+        <button id="btnSubmitChangePassword" type="button" class="w-full py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold transition">
+          Actualizar contraseña
         </button>
       </div>
     </div>
@@ -131,26 +133,17 @@
         </div>
       </div>
 
-      <!-- Session & Quick Role Switcher Bar -->
+      <!-- Session Bar -->
       <div class="flex flex-wrap items-center gap-2 text-xs">
-        <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-          <span class="px-2 text-[11px] font-medium text-slate-500">Modo / Rol:</span>
-          <button id="btnQuickRoleUser" type="button" class="px-2.5 py-1 rounded-md text-[11px] font-semibold transition bg-white text-slate-900 shadow-sm">
-            Usuario (Solo Pestaña 1)
-          </button>
-          <button id="btnQuickRoleAdmin" type="button" class="px-2.5 py-1 rounded-md text-[11px] font-semibold transition text-slate-600 hover:text-slate-900">
-            Admin (Ver Todo)
-          </button>
-        </div>
-
-        <div class="h-4 w-px bg-slate-200 hidden sm:block"></div>
-
         <div class="flex items-center gap-2">
           <span id="currentUserBadge" class="px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700 font-medium text-[11px]">
-            María Gómez (Rol: Usuario)
+            Sesión no iniciada
           </span>
           <button id="btnOpenAuthModal" type="button" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold text-[11px] transition">
-            Cambiar / Registrar Cuenta
+            Iniciar sesión / Crear cuenta
+          </button>
+          <button id="btnChangePassword" type="button" class="hidden px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 font-semibold text-[11px] transition">
+            Cambiar contraseña
           </button>
         </div>
       </div>
@@ -552,7 +545,7 @@
           <div class="surface-card p-4 bg-slate-50 space-y-1.5">
             <div class="text-xs font-bold text-slate-800">Política de Datos de Ubicación (Tabla <code class="font-mono-num">reports</code>)</div>
             <p class="text-xs text-slate-600">
-              La base de datos almacena exclusivamente las coordenadas (<code class="font-mono-num">lat, lng</code>), municipio, sector, tipo de depósito y métricas del modelo (<code class="font-mono-num">risk_percent, larva_percent, yolo_boxes_count</code>), sin guardar imágenes privadas de los hogares.
+              La base de datos almacena las coordenadas (<code class="font-mono-num">lat, lng</code>), municipio, sector, tipo de depósito, métricas del modelo y correo de la cuenta que reporta; no guarda imágenes privadas de los hogares.
             </p>
           </div>
         </div>
@@ -572,12 +565,6 @@
             <button id="btnExportJson" type="button" class="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-xs font-semibold">
               📦 Descargar JSON
             </button>
-            <button id="btnResetDemoData" type="button" class="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs">
-              🔄 Restaurar Puntos Base
-            </button>
-            <button id="btnClearAllRecords" type="button" class="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold">
-              🗑️ Limpiar Historial
-            </button>
           </div>
         </div>
 
@@ -593,7 +580,6 @@
                 <th class="py-2.5 px-3 text-right">Etapa 1</th>
                 <th class="py-2.5 px-3 text-right">Etapa 2</th>
                 <th class="py-2.5 px-3 text-right">YOLO NMS</th>
-                <th class="py-2.5 px-3 text-center">Acción</th>
               </tr>
             </thead>
             <tbody id="recordsTableBody" class="divide-y divide-slate-200 text-slate-800"></tbody>
@@ -669,9 +655,6 @@
               <h2 class="text-sm font-bold text-slate-900">Gestión de Usuarios Registrados (Tabla SQL <code class="font-mono-num">users</code>)</h2>
               <p class="text-xs text-slate-500">Los usuarios con rol <code class="font-mono-num">user</code> solo ven la Pestaña 1; los <code class="font-mono-num">admin</code> acceden a todo el sistema</p>
             </div>
-            <button id="btnAdminNewUser" type="button" class="px-3 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold">
-              + Registrar Usuario
-            </button>
           </div>
 
           <div class="overflow-x-auto">
@@ -683,7 +666,6 @@
                   <th class="py-2 px-2.5">Correo</th>
                   <th class="py-2 px-2.5">Rol (RBAC)</th>
                   <th class="py-2 px-2.5">Permisos</th>
-                  <th class="py-2 px-2.5 text-center">Cambiar Rol</th>
                 </tr>
               </thead>
               <tbody id="usersTableBody" class="divide-y divide-slate-200 text-slate-800"></tbody>
@@ -789,15 +771,6 @@ git push origin main</pre>
     ];
 
     const STORAGE_KEY = 'aquavigia_geo_records';
-    const USERS_STORAGE_KEY = 'aquavigia_db_users_v3';
-    const SESSION_STORAGE_KEY = 'aquavigia_current_session_v3';
-
-    const INITIAL_USERS = [
-      { id: 1, name: 'Kevin Sossa (Admin Salud Pública)', email: 'admin@aquavigia.co', password: 'admin123', role: 'admin', municipio: 'Cartagena de Indias (Bolívar)' },
-      { id: 2, name: 'Coordinación DADIS Cartagena', email: 'dadis@cartagena.gov.co', password: 'dadis2026', role: 'admin', municipio: 'Cartagena de Indias (Bolívar)' },
-      { id: 3, name: 'María Fernanda Gómez (Monitora)', email: 'maria@comunidad.co', password: 'user123', role: 'user', municipio: 'Cartagena de Indias (Bolívar)' },
-      { id: 4, name: 'Carlos Andrés Pérez (Ciudadano)', email: 'carlos@correo.co', password: 'user123', role: 'user', municipio: 'Barranquilla (Atlántico)' }
-    ];
 
     const INITIAL_DEMO_RECORDS = [
       {
@@ -906,7 +879,7 @@ git push origin main</pre>
 
     // ==================== 2. APPLICATION STATE, AUTH & RBAC ====================
     let appState = {
-      currentUser: INITIAL_USERS[2], // Starts in User view (Maria Gomez - 'user' role) or switched via top bar
+      currentUser: null,
       currentViewMode: 'boxes',
       yoloConfThresh: 0.55,
       yoloIouThresh: 0.35,
@@ -927,7 +900,8 @@ git push origin main</pre>
       dashboardMap: null,
       dashboardMarkersLayer: null,
       chartInstance: null,
-      cameraStream: null
+      cameraStream: null,
+      serverReports: []
     };
 
     function showToast(message, type = 'success') {
@@ -954,44 +928,56 @@ git push origin main</pre>
       box.scrollTop = box.scrollHeight;
     }
 
-    function readUsersDB() {
-      try {
-        const raw = localStorage.getItem(USERS_STORAGE_KEY);
-        if (!raw) {
-          localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(INITIAL_USERS));
-          return [...INITIAL_USERS];
-        }
-        return JSON.parse(raw);
-      } catch (e) {
-        return [...INITIAL_USERS];
+    async function apiRequest(path, options = {}) {
+      if (location.protocol !== 'http:' && location.protocol !== 'https:') {
+        throw new Error('Inicia server.py y abre la aplicación desde http://127.0.0.1:8000.');
       }
+      const response = await fetch(path, {
+        credentials: 'same-origin',
+        ...options,
+        headers: {
+          ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+          ...(options.headers || {})
+        }
+      });
+      if (!(response.headers.get('Content-Type') || '').includes('application/json')) {
+        const error = new Error(`Respuesta inesperada de la API (${response.status}).`);
+        error.status = response.status;
+        throw error;
+      }
+      const payload = await response.json();
+      if (!response.ok) {
+        const error = new Error(payload.error || 'La solicitud no pudo completarse.');
+        error.status = response.status;
+        throw error;
+      }
+      return payload;
     }
 
-    function writeUsersDB(users) {
-      try {
-        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-      } catch (e) {}
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[character]);
     }
 
     function applyRolePermissions() {
       const isAdmin = appState.currentUser && appState.currentUser.role === 'admin';
       const userBadge = document.getElementById('currentUserBadge');
       const roleLabel = isAdmin ? 'Admin' : 'Usuario';
-      userBadge.textContent = `${appState.currentUser.name.split(' (')[0]} (Rol: ${roleLabel})`;
+      userBadge.textContent = appState.currentUser
+        ? `${appState.currentUser.name.split(' (')[0]} (Rol: ${roleLabel})`
+        : 'Sesión no iniciada';
       userBadge.className = isAdmin
         ? 'px-2.5 py-1 rounded-md bg-teal-50 border border-teal-200 text-teal-800 font-semibold text-[11px]'
         : 'px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700 font-medium text-[11px]';
-
-      // Quick Role Switcher visual state
-      const btnUser = document.getElementById('btnQuickRoleUser');
-      const btnAdmin = document.getElementById('btnQuickRoleAdmin');
-      if (isAdmin) {
-        btnAdmin.className = 'px-2.5 py-1 rounded-md text-[11px] font-semibold transition bg-teal-700 text-white shadow-sm';
-        btnUser.className = 'px-2.5 py-1 rounded-md text-[11px] font-semibold transition text-slate-600 hover:text-slate-900';
-      } else {
-        btnUser.className = 'px-2.5 py-1 rounded-md text-[11px] font-semibold transition bg-white text-slate-900 shadow-sm';
-        btnAdmin.className = 'px-2.5 py-1 rounded-md text-[11px] font-semibold transition text-slate-600 hover:text-slate-900';
-      }
+      document.getElementById('btnOpenAuthModal').textContent = appState.currentUser
+        ? 'Cerrar sesión'
+        : 'Iniciar sesión / Crear cuenta';
+      document.getElementById('btnChangePassword').classList.toggle('hidden', !appState.currentUser);
 
       // Show or hide Admin-only navigation tabs
       document.querySelectorAll('.admin-only-tab').forEach(btn => {
@@ -1005,12 +991,27 @@ git push origin main</pre>
       const noticeText = document.getElementById('rbacNoticeText');
       if (isAdmin) {
         noticeText.textContent = 'Modo Administrador: acceso completo al Dashboard Epidemiológico, Auditoría YOLO y Base de Datos de Usuarios.';
-      } else {
+      } else if (appState.currentUser) {
         noticeText.textContent = 'Modo Usuario: acceso exclusivo a la Pestaña 1 (captura, detección YOLO y reporte de ubicación).';
-        // Force back to Tab 1 if currently on an admin tab
+      } else {
+        noticeText.textContent = 'Inicia sesión para guardar reportes. El acceso al panel depende de tu cuenta.';
         switchTab('Analizador');
       }
-      renderUsersTable();
+      if (isAdmin) {
+        renderUsersTable();
+      } else {
+        appState.serverReports = [];
+        document.getElementById('usersTableBody').replaceChildren();
+        document.getElementById('recordsTableBody').replaceChildren();
+        ['kpiLarvaCount', 'kpiRiskCount', 'kpiSafeCount', 'kpiTotalCount'].forEach(id => {
+          document.getElementById(id).textContent = '0';
+        });
+        if (appState.dashboardMarkersLayer) appState.dashboardMarkersLayer.clearLayers();
+        if (appState.chartInstance) {
+          appState.chartInstance.destroy();
+          appState.chartInstance = null;
+        }
+      }
     }
 
     function readGeoRecords() {
@@ -1640,8 +1641,30 @@ git push origin main</pre>
       return { label: 'Sin Riesgo', color: '#15803d', badgeBg: 'bg-emerald-50 text-emerald-800 border-emerald-200' };
     }
 
+    async function loadServerReports() {
+      const { reports } = await apiRequest('/api/reports');
+      appState.serverReports = reports.map(report => ({
+        id: report.id,
+        userEmail: report.user_email,
+        lat: report.lat,
+        lng: report.lng,
+        municipio: report.municipio,
+        sector: report.sector,
+        depositType: report.deposit_type,
+        riskLevel: report.risk_level,
+        virusPresent: Boolean(report.virus_present),
+        riskPercent: report.risk_percent,
+        larvaPercent: report.larva_percent,
+        larvaBoxesCount: report.yolo_boxes_count,
+        yoloPreNmsCount: report.yolo_pre_nms_count,
+        analysisStatus: report.analysis_status,
+        timestamp: report.timestamp
+      }));
+      renderDashboard();
+    }
+
     function renderDashboard() {
-      const records = readGeoRecords();
+      const records = appState.serverReports;
       const filterVal = document.getElementById('filterMapStatus').value;
       const filtered = filterVal === 'all' ? records : records.filter(r => r.analysisStatus === filterVal);
 
@@ -1676,10 +1699,10 @@ git push origin main</pre>
           .bindPopup(`
             <div style="font-family:Inter,sans-serif;font-size:12px;line-height:1.4;color:#0f172a;">
               <strong>${st.label}</strong><br/>
-              <span><b>Lugar:</b> ${r.municipio} — ${r.sector}</span><br/>
-              <span><b>Criadero:</b> ${r.depositType}</span><br/>
+              <span><b>Lugar:</b> ${escapeHtml(r.municipio)} — ${escapeHtml(r.sector)}</span><br/>
+              <span><b>Criadero:</b> ${escapeHtml(r.depositType)}</span><br/>
               <span><b>Etapa 1:</b> ${r.riskPercent}% | <b>Etapa 2:</b> ${r.larvaPercent}% (YOLO: ${r.larvaBoxesCount || 0} cajas)</span><br/>
-              <span style="color:#64748b;font-size:11px;">Reportado por: ${r.userEmail || 'ciudadano'}</span>
+              <span style="color:#64748b;font-size:11px;">Reportado por: ${escapeHtml(r.userEmail || 'ciudadano')}</span>
             </div>
           `)
           .addTo(appState.dashboardMarkersLayer);
@@ -1694,29 +1717,16 @@ git push origin main</pre>
         tr.className = 'hover:bg-slate-50 transition';
         const dateStr = new Date(r.timestamp).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' });
         tr.innerHTML = `
-          <td class="py-2 px-3 font-mono-num text-[11px] text-slate-600">${r.id}<br/><span class="text-slate-400">${dateStr}</span></td>
-          <td class="py-2 px-3 text-slate-600">${r.userEmail || 'maria@comunidad.co'}</td>
-          <td class="py-2 px-3 font-semibold text-slate-900">${r.municipio} <span class="text-slate-500 font-normal">(${r.sector})</span></td>
+          <td class="py-2 px-3 font-mono-num text-[11px] text-slate-600">${escapeHtml(r.id)}<br/><span class="text-slate-400">${escapeHtml(dateStr)}</span></td>
+          <td class="py-2 px-3 text-slate-600">${escapeHtml(r.userEmail || 'ciudadano')}</td>
+          <td class="py-2 px-3 font-semibold text-slate-900">${escapeHtml(r.municipio)} <span class="text-slate-500 font-normal">(${escapeHtml(r.sector)})</span></td>
           <td class="py-2 px-3 font-mono-num text-[11px] text-slate-700">${Number(r.lat).toFixed(4)}, ${Number(r.lng).toFixed(4)}</td>
           <td class="py-2 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold border ${st.badgeBg}">${st.label}</span></td>
           <td class="py-2 px-3 text-right font-mono-num font-semibold text-amber-700">${r.riskPercent}%</td>
           <td class="py-2 px-3 text-right font-mono-num font-semibold text-rose-700">${r.larvaPercent}%</td>
-          <td class="py-2 px-3 text-right font-mono-num text-[11px] text-slate-600">${r.larvaBoxesCount || 0} (${r.yoloPreNmsCount || 0} raw)</td>
-          <td class="py-2 px-3 text-center">
-            <button type="button" data-del-id="${r.id}" class="del-record-btn px-2 py-1 rounded bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 text-[11px] font-medium">Eliminar</button>
-          </td>
+          <td class="py-2 px-3 text-right font-mono-num text-[11px] text-slate-600">${Number(r.larvaBoxesCount) || 0} (${Number(r.yoloPreNmsCount) || 0} raw)</td>
         `;
         tbody.appendChild(tr);
-      });
-
-      tbody.querySelectorAll('.del-record-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-          const id = this.getAttribute('data-del-id');
-          const updated = readGeoRecords().filter(item => String(item.id) !== String(id));
-          writeGeoRecords(updated);
-          renderDashboard();
-          showToast('Registro eliminado de la base de datos.', 'warn');
-        });
       });
 
       const ctxChart = document.getElementById('dashboardChart');
@@ -1746,51 +1756,41 @@ git push origin main</pre>
       }
     }
 
-    function renderUsersTable() {
+    function csvCell(value) {
+      let text = String(value ?? '');
+      if (typeof value === 'string' && /^[\t\r ]*[=+\-@]/.test(text)) {
+        text = `'${text}`;
+      }
+      return `"${text.replace(/"/g, '""')}"`;
+    }
+
+    async function renderUsersTable() {
       const tbody = document.getElementById('usersTableBody');
       if (!tbody) return;
-      const users = readUsersDB();
-      tbody.innerHTML = '';
-      users.forEach(u => {
-        const isAdm = u.role === 'admin';
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50';
-        tr.innerHTML = `
-          <td class="py-2 px-2.5 font-mono-num text-slate-500">#${u.id}</td>
-          <td class="py-2 px-2.5 font-semibold text-slate-900">${u.name}</td>
-          <td class="py-2 px-2.5 font-mono-num text-[11px] text-slate-600">${u.email}</td>
-          <td class="py-2 px-2.5">
-            <span class="px-2 py-0.5 rounded text-[11px] font-semibold border ${isAdm ? 'bg-teal-50 text-teal-800 border-teal-200' : 'bg-slate-100 text-slate-700 border-slate-200'}">
-              ${isAdm ? 'admin' : 'user'}
-            </span>
-          </td>
-          <td class="py-2 px-2.5 text-[11px] text-slate-600">${isAdm ? 'Pestañas 1, 2, 3 y 4 (Total)' : 'Solo Pestaña 1 (Reporte)'}</td>
-          <td class="py-2 px-2.5 text-center">
-            <button type="button" data-toggle-uid="${u.id}" class="toggle-role-btn px-2 py-1 rounded bg-white border border-slate-300 hover:bg-slate-100 text-[11px] font-medium text-slate-700">
-              Pasar a ${isAdm ? 'user' : 'admin'}
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      tbody.querySelectorAll('.toggle-role-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-          const uid = parseInt(this.getAttribute('data-toggle-uid'), 10);
-          const users = readUsersDB().map(u => {
-            if (u.id === uid) {
-              return { ...u, role: u.role === 'admin' ? 'user' : 'admin' };
-            }
-            return u;
-          });
-          writeUsersDB(users);
-          if (appState.currentUser && appState.currentUser.id === uid) {
-            appState.currentUser = users.find(u => u.id === uid);
-          }
-          applyRolePermissions();
-          showToast('Rol actualizado en la tabla SQL users.');
+      tbody.replaceChildren();
+      if (!appState.currentUser || appState.currentUser.role !== 'admin') return;
+      try {
+        const { users } = await apiRequest('/api/users');
+        users.forEach(user => {
+          const isAdmin = user.role === 'admin';
+          const row = document.createElement('tr');
+          row.className = 'hover:bg-slate-50';
+          row.innerHTML = `
+            <td class="py-2 px-2.5 font-mono-num text-slate-500">#${escapeHtml(user.id)}</td>
+            <td class="py-2 px-2.5 font-semibold text-slate-900">${escapeHtml(user.name)}</td>
+            <td class="py-2 px-2.5 font-mono-num text-[11px] text-slate-600">${escapeHtml(user.email)}</td>
+            <td class="py-2 px-2.5">
+              <span class="px-2 py-0.5 rounded text-[11px] font-semibold border ${isAdmin ? 'bg-teal-50 text-teal-800 border-teal-200' : 'bg-slate-100 text-slate-700 border-slate-200'}">
+                ${isAdmin ? 'admin' : 'user'}
+              </span>
+            </td>
+            <td class="py-2 px-2.5 text-[11px] text-slate-600">${isAdmin ? 'Pestañas 1, 2, 3 y 4 (Total)' : 'Solo Pestaña 1 (Reporte)'}</td>
+          `;
+          tbody.appendChild(row);
         });
-      });
+      } catch (error) {
+        showToast(error.message, 'error');
+      }
     }
 
     // ==================== 5. NAVIGATION & EVENT BINDINGS ====================
@@ -1830,7 +1830,7 @@ git push origin main</pre>
         setTimeout(() => appState.miniMap.invalidateSize(), 80);
       }
       if (tabId === 'Dashboard') {
-        renderDashboard();
+        loadServerReports().catch(error => showToast(error.message, 'error'));
         setTimeout(() => {
           if (appState.dashboardMap) appState.dashboardMap.invalidateSize();
         }, 100);
@@ -1840,7 +1840,19 @@ git push origin main</pre>
       }
     }
 
-    window.addEventListener('DOMContentLoaded', function () {
+    window.addEventListener('DOMContentLoaded', async function () {
+      try {
+        localStorage.removeItem('aquavigia_db_users_v3');
+        localStorage.removeItem('aquavigia_current_session_v3');
+      } catch (error) {
+        console.warn('No se pudo limpiar la sesión local antigua:', error);
+      }
+      try {
+        appState.currentUser = (await apiRequest('/api/auth/me')).user;
+      } catch (error) {
+        if (error.status !== 401) showToast(`No se pudo validar la sesión: ${error.message}`, 'error');
+      }
+
       initMiniMap();
       applyRolePermissions();
 
@@ -1854,97 +1866,119 @@ git push origin main</pre>
       document.getElementById('tabBtnModelo').addEventListener('click', () => switchTab('Modelo'));
       document.getElementById('tabBtnDeploy').addEventListener('click', () => switchTab('Deploy'));
 
-      // Quick Role Switcher (User vs Admin)
-      document.getElementById('btnQuickRoleUser').addEventListener('click', function () {
-        const users = readUsersDB();
-        appState.currentUser = users.find(u => u.role === 'user') || INITIAL_USERS[2];
-        applyRolePermissions();
-        showToast('Vista Usuario activada: acceso exclusivo a la Pestaña 1.');
-      });
-      document.getElementById('btnQuickRoleAdmin').addEventListener('click', function () {
-        const users = readUsersDB();
-        appState.currentUser = users.find(u => u.role === 'admin') || INITIAL_USERS[0];
-        applyRolePermissions();
-        showToast('Vista Administrador activada: Dashboard, Modelo y Base de Datos desbloqueados.');
-      });
-
       // Auth Modal Controls
       const authModal = document.getElementById('authModal');
       const formLoginBox = document.getElementById('formLoginBox');
       const formRegisterBox = document.getElementById('formRegisterBox');
+      const formChangePasswordBox = document.getElementById('formChangePasswordBox');
       const tabAuthLogin = document.getElementById('tabAuthLogin');
       const tabAuthRegister = document.getElementById('tabAuthRegister');
+      const tabAuthPassword = document.getElementById('tabAuthPassword');
 
       function showAuthMode(mode) {
-        if (mode === 'login') {
-          formLoginBox.classList.remove('hidden');
-          formRegisterBox.classList.add('hidden');
-          tabAuthLogin.className = 'py-1.5 rounded-md bg-white text-slate-900 shadow-sm';
-          tabAuthRegister.className = 'py-1.5 rounded-md text-slate-600 hover:text-slate-900';
-        } else {
-          formLoginBox.classList.add('hidden');
-          formRegisterBox.classList.remove('hidden');
-          tabAuthRegister.className = 'py-1.5 rounded-md bg-white text-slate-900 shadow-sm';
-          tabAuthLogin.className = 'py-1.5 rounded-md text-slate-600 hover:text-slate-900';
-        }
+        tabAuthLogin.parentElement.classList.toggle('grid-cols-2', !appState.currentUser);
+        tabAuthLogin.parentElement.classList.toggle('grid-cols-3', Boolean(appState.currentUser));
+        formLoginBox.classList.toggle('hidden', mode !== 'login');
+        formRegisterBox.classList.toggle('hidden', mode !== 'register');
+        formChangePasswordBox.classList.toggle('hidden', mode !== 'password');
+        tabAuthLogin.className = mode === 'login'
+          ? 'py-1.5 rounded-md bg-white text-slate-900 shadow-sm'
+          : 'py-1.5 rounded-md text-slate-600 hover:text-slate-900';
+        tabAuthRegister.className = mode === 'register'
+          ? 'py-1.5 rounded-md bg-white text-slate-900 shadow-sm'
+          : 'py-1.5 rounded-md text-slate-600 hover:text-slate-900';
+        tabAuthPassword.className = `${mode === 'password'
+          ? 'py-1.5 rounded-md bg-white text-slate-900 shadow-sm'
+          : 'py-1.5 rounded-md text-slate-600 hover:text-slate-900'}${appState.currentUser ? '' : ' hidden'}`;
       }
 
-      document.getElementById('btnOpenAuthModal').addEventListener('click', () => {
+      document.getElementById('btnOpenAuthModal').addEventListener('click', async () => {
+        if (appState.currentUser) {
+          try {
+            await apiRequest('/api/auth/logout', { method: 'POST', body: '{}' });
+            appState.currentUser = null;
+            applyRolePermissions();
+            showToast('Sesión cerrada.');
+          } catch (error) {
+            showToast(error.message, 'error');
+          }
+          return;
+        }
         showAuthMode('login');
-        authModal.classList.remove('hidden');
-      });
-      document.getElementById('btnAdminNewUser').addEventListener('click', () => {
-        showAuthMode('register');
         authModal.classList.remove('hidden');
       });
       document.getElementById('btnCloseAuthModal').addEventListener('click', () => authModal.classList.add('hidden'));
       tabAuthLogin.addEventListener('click', () => showAuthMode('login'));
       tabAuthRegister.addEventListener('click', () => showAuthMode('register'));
-
-      document.getElementById('btnSubmitLogin').addEventListener('click', function () {
-        const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-        const pw = document.getElementById('loginPassword').value;
-        const users = readUsersDB();
-        const found = users.find(u => u.email.toLowerCase() === email && u.password === pw);
-        if (!found) {
-          showToast('Correo o contraseña incorrectos.', 'error');
-          return;
-        }
-        appState.currentUser = found;
-        authModal.classList.add('hidden');
-        applyRolePermissions();
-        showToast(`Sesión iniciada como ${found.name} (${found.role}).`);
+      tabAuthPassword.addEventListener('click', () => showAuthMode('password'));
+      document.getElementById('btnChangePassword').addEventListener('click', () => {
+        showAuthMode('password');
+        authModal.classList.remove('hidden');
       });
 
-      document.getElementById('btnSubmitRegister').addEventListener('click', function () {
+      document.getElementById('btnSubmitLogin').addEventListener('click', async function () {
+        const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+        const pw = document.getElementById('loginPassword').value;
+        try {
+          const { user } = await apiRequest('/api/auth/login', {
+            method: 'POST',
+            body: JSON.stringify({ email, password: pw })
+          });
+          appState.currentUser = user;
+          document.getElementById('loginPassword').value = '';
+          authModal.classList.add('hidden');
+          applyRolePermissions();
+          showToast(`Sesión iniciada como ${user.name} (${user.role}).`);
+        } catch (error) {
+          showToast(error.message, 'error');
+        }
+      });
+
+      document.getElementById('btnSubmitRegister').addEventListener('click', async function () {
         const name = document.getElementById('regName').value.trim();
         const email = document.getElementById('regEmail').value.trim().toLowerCase();
         const password = document.getElementById('regPassword').value;
-        const role = document.getElementById('regRole').value;
         const municipio = document.getElementById('regMunicipio').value.trim() || 'Cartagena de Indias (Bolívar)';
-        if (!name || !email || password.length < 4) {
-          showToast('Completa nombre, correo y contraseña (mín. 4 caracteres).', 'error');
+        if (!name || !email || password.length < 12 || password.length > 128) {
+          showToast('Completa nombre, correo y contraseña (mín. 12 caracteres).', 'error');
           return;
         }
-        const users = readUsersDB();
-        if (users.some(u => u.email.toLowerCase() === email)) {
-          showToast('Ese correo ya está registrado en la base de datos.', 'error');
+        try {
+          const { user } = await apiRequest('/api/auth/register', {
+            method: 'POST',
+            body: JSON.stringify({ name, email, password, municipio })
+          });
+          appState.currentUser = user;
+          document.getElementById('regPassword').value = '';
+          authModal.classList.add('hidden');
+          applyRolePermissions();
+          showToast(`Cuenta registrada para ${user.name}.`);
+        } catch (error) {
+          showToast(error.message, 'error');
+        }
+      });
+
+      document.getElementById('btnSubmitChangePassword').addEventListener('click', async function () {
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        if (newPassword.length < 12 || newPassword.length > 128) {
+          showToast('La nueva contraseña debe tener entre 12 y 128 caracteres.', 'error');
           return;
         }
-        const newUser = {
-          id: users.length + 1,
-          name,
-          email,
-          password,
-          role,
-          municipio
-        };
-        users.push(newUser);
-        writeUsersDB(users);
-        appState.currentUser = newUser;
-        authModal.classList.add('hidden');
-        applyRolePermissions();
-        showToast(`Usuario ${name} registrado en la BD con rol "${role}".`);
+        try {
+          await apiRequest('/api/auth/password', {
+            method: 'POST',
+            body: JSON.stringify({ currentPassword, newPassword })
+          });
+          appState.currentUser = null;
+          document.getElementById('currentPassword').value = '';
+          document.getElementById('newPassword').value = '';
+          authModal.classList.add('hidden');
+          applyRolePermissions();
+          showToast('Contraseña actualizada. Inicia sesión nuevamente.');
+        } catch (error) {
+          showToast(error.message, 'error');
+        }
       });
 
       // YOLO NMS Sliders & Grid Toggle
@@ -2098,7 +2132,13 @@ git push origin main</pre>
         );
       });
 
-      document.getElementById('btnSaveLocationReport').addEventListener('click', function () {
+      document.getElementById('btnSaveLocationReport').addEventListener('click', async function () {
+        if (!appState.currentUser) {
+          showToast('Inicia sesión para guardar un reporte.', 'warn');
+          showAuthMode('login');
+          authModal.classList.remove('hidden');
+          return;
+        }
         const lat = parseFloat(document.getElementById('inputLat').value);
         const lng = parseFloat(document.getElementById('inputLng').value);
         if (isNaN(lat) || isNaN(lng)) {
@@ -2127,12 +2167,18 @@ git push origin main</pre>
           timestamp: new Date().toISOString()
         });
 
-        const existing = readGeoRecords();
-        existing.push(newRecord);
-        writeGeoRecords(existing);
-
-        addConsoleLog(`INSERT INTO reports: [${newRecord.id}] (${newRecord.lat}, ${newRecord.lng}) -> ${newRecord.analysisStatus}`);
-        showToast('Reporte de ubicación guardado en la Base de Datos.');
+        try {
+          const saved = await apiRequest('/api/reports', {
+            method: 'POST',
+            body: JSON.stringify(newRecord)
+          });
+          newRecord.id = saved.id;
+          newRecord.analysisStatus = saved.status;
+          addConsoleLog(`INSERT INTO reports: [${newRecord.id}] (${newRecord.lat}, ${newRecord.lng}) -> ${newRecord.analysisStatus}`);
+          showToast('Reporte de ubicación guardado en la Base de Datos.');
+        } catch (error) {
+          showToast(error.message, 'error');
+        }
       });
 
       // Dashboard Actions
@@ -2143,19 +2189,8 @@ git push origin main</pre>
       document.getElementById('btnCenterCartagena').addEventListener('click', () => {
         if (appState.dashboardMap) appState.dashboardMap.setView([10.3997, -75.5144], 12);
       });
-      document.getElementById('btnResetDemoData').addEventListener('click', () => {
-        writeGeoRecords([...INITIAL_DEMO_RECORDS]);
-        renderDashboard();
-        showToast('Registros base restaurados en la BD.');
-      });
-      document.getElementById('btnClearAllRecords').addEventListener('click', () => {
-        writeGeoRecords([]);
-        renderDashboard();
-        showToast('Tabla reports limpiada.', 'warn');
-      });
-
       document.getElementById('btnExportJson').addEventListener('click', () => {
-        const blob = new Blob([JSON.stringify(readGeoRecords(), null, 2)], { type: 'application/json' });
+        const blob = new Blob([JSON.stringify(appState.serverReports, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -2165,9 +2200,9 @@ git push origin main</pre>
       });
 
       document.getElementById('btnExportCsv').addEventListener('click', () => {
-        const records = readGeoRecords();
+        const records = appState.serverReports;
         const headers = ['id', 'timestamp', 'userEmail', 'municipio', 'sector', 'lat', 'lng', 'depositType', 'analysisStatus', 'riskPercent', 'larvaPercent', 'larvaBoxesCount', 'yoloPreNmsCount'];
-        const rows = records.map(r => headers.map(h => `"${String(r[h] ?? '').replace(/"/g, '""')}"`).join(','));
+        const rows = records.map(r => headers.map(h => csvCell(r[h])).join(','));
         const blob = new Blob([[headers.join(','), ...rows].join('\n')], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
