@@ -123,7 +123,10 @@
           AV
         </div>
         <div>
-          
+          <div class="flex items-center gap-2">
+            <h1 class="text-sm font-bold text-slate-900 tracking-tight">AquaVigía Colombia</h1>
+            <span class="px-2 py-0.5 text-[11px] font-medium rounded bg-slate-100 text-slate-700 border border-slate-200 font-mono-num">v3.0 Server + BD + YOLO</span>
+          </div>
           <p class="text-[11px] text-slate-500">Vigilancia Epidemiológica de Focos Hídricos y Larvas de <em>Aedes aegypti</em></p>
         </div>
       </div>
@@ -171,7 +174,10 @@
           </button>
         </nav>
 
-       
+        <div id="rbacNoticeBanner" class="text-[11px] text-slate-500 flex items-center gap-2">
+          <span class="inline-block w-2 h-2 rounded-full bg-teal-600"></span>
+          <span id="rbacNoticeText">Vista de Usuario: habilitada únicamente la Pestaña 1 (captura, detección YOLO y reporte).</span>
+        </div>
       </div>
     </div>
   </header>
@@ -185,11 +191,19 @@
       <!-- Compact Technical Bar -->
       <div class="surface-card px-4 py-3 flex flex-wrap items-center justify-between gap-3 bg-white">
         <div class="flex flex-wrap items-center gap-4 text-xs">
-          
+          <div>
+            <span class="text-slate-500">Arquitectura Activa:</span>
+            <strong class="text-slate-900 ml-1">Doble Clasificación (Etapa 1 + Etapa 2) + YOLO Multi-Scale Grid (16×16 / 24×24) + NMS</strong>
+          </div>
           <div class="h-3.5 w-px bg-slate-200 hidden md:block"></div>
-          
+          <div>
+            <span class="text-slate-500">Tiempo de Inferencia:</span>
+            <strong id="inferenceTimeBadge" class="font-mono-num text-teal-700 ml-1">14 ms</strong>
+          </div>
         </div>
-        
+        <div class="text-[11px] text-slate-500">
+          Privacidad BD: <strong class="text-slate-800">Solo se almacena la ubicación del sitio reportado</strong>
+        </div>
       </div>
 
       <!-- Main 12-Col Grid -->
@@ -336,7 +350,9 @@
             </div>
 
             <!-- Compact Event Log -->
-            
+            <div class="bg-slate-50 rounded-lg p-2.5 border border-slate-200 font-mono-num text-[11px] text-slate-600 space-y-1 max-h-24 overflow-y-auto" id="consoleLogBox">
+              <div>[Sistema] Motor de Doble Clasificación + YOLO Multi-Scale Grid (16×16 y 24×24) + NMS listo.</div>
+            </div>
           </div>
         </div>
 
