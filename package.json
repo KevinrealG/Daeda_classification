@@ -1,0 +1,9 @@
+{
+  "name": "aquavigia-colombia-v3",
+  "version": "3.0.0",
+  "private": true,
+  "description": "AquaVigia Colombia v3.0 - Vigilancia Epidemiologica Aedes aegypti con YOLO + Doble Clasificacion",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

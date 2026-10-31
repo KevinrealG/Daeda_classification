@@ -1,0 +1,15 @@
+# Configuración Oficial de Netlify para AquaVigía Colombia v3.0
+[build]
+  publish = "."
+  command = "echo 'Build estático + Serverless Functions listo'"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Redirige todas las llamadas de /api/* (login, registro, reportes y usuarios) a la función serverless de Netlify
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
