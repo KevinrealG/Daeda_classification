@@ -1855,7 +1855,9 @@ git push origin main</pre>
       initMiniMap();
       applyRolePermissions();
       if (appState.currentUser && appState.currentUser.role === 'admin') {
-        setTimeout(() => switchTab('Dashboard'), 50);
+        const requestedTab = new URLSearchParams(location.search).get('tab');
+        const initialTab = requestedTab === 'Modelo' ? 'Modelo' : 'Dashboard';
+        setTimeout(() => switchTab(initialTab), 50);
       }
 
       const imgEl = document.getElementById('hiddenSourceImage');

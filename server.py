@@ -32,6 +32,16 @@ PASSWORD_ITERATIONS = 600_000
 LEGACY_PASSWORD_SALT = "aquavigia_col_v3"
 SECURE_COOKIE = os.environ.get("AQUAVIGIA_COOKIE_SECURE", "0") == "1"
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+PUBLIC_FILES = {
+    "/",
+    "/index.html",
+    "/dashboard.html",
+    "/app-storage.js",
+    "/onnx-hybrid-loader.js",
+    "/aquavigia_models_v2.json",
+    "/mobilenet_etapa1_riesgo.onnx",
+    "/mobilenet_etapa2_larva.onnx",
+}
 
 YOLO_MODEL = None
 try:
@@ -270,17 +280,12 @@ class AquaVigiaHandler(SimpleHTTPRequestHandler):
                 ]
             return self._send_json(200, {"users": rows})
 
-        if parsed.path in ("/", "/index.html", "/dashboard.html", "/app-storage.js"):
+        if parsed.path in PUBLIC_FILES:
             return super().do_GET()
         return self._send_error_json(404, "Recurso no encontrado.")
 
     def do_HEAD(self):
-        if urlparse(self.path).path in (
-            "/",
-            "/index.html",
-            "/dashboard.html",
-            "/app-storage.js",
-        ):
+        if urlparse(self.path).path in PUBLIC_FILES:
             return super().do_HEAD()
         self.send_response(404)
         self.send_header("Content-Length", "0")
@@ -566,5 +571,6 @@ class AquaVigiaHandler(SimpleHTTPRequestHandler):
 
 if __name__ == "__main__":
     mimetypes.add_type("application/javascript", ".js")
+    mimetypes.add_type("application/onnx", ".onnx")
     print(f"Servidor AquaVigía v3.0 activo en http://{HOST}:{PORT}")
     HTTPServer((HOST, PORT), AquaVigiaHandler).serve_forever()
